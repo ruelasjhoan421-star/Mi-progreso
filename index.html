@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Progreso</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#07111f;color:#fff}
+.app{max-width:900px;margin:auto;padding:16px}
+header{padding:8px 4px 16px}
+header h1{margin:0;font-size:28px}
+header p{margin:6px 0;color:#8fa3bd}
+.menu{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px}
+.menu button{white-space:nowrap;background:#0d1b2d;color:#fff;border:1px solid #1d3958}
+button{border:0;border-radius:10px;padding:10px 13px;font-weight:bold;cursor:pointer}
+.menu button.active{background:#20e0a0;color:#04100b}
+.screen{display:none}
+.screen.active{display:block}
+.card{background:#0d1b2d;border:1px solid #1d3958;border-radius:18px;padding:18px;margin-bottom:14px}
+.progress{font-size:48px;font-weight:bold;margin:8px 0}
+.bar{height:14px;background:#1a2a3d;border-radius:20px;overflow:hidden}
+.barfill{height:100%;width:0;background:#20e0a0;transition:.25s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#101f32;border-radius:14px;padding:14px;text-align:center}
+.num{font-size:24px;font-weight:bold}.muted{color:#8fa3bd;font-size:13px}
+.inputrow{display:flex;gap:8px;margin-bottom:14px}
+input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #294765;background:#081525;color:#fff}
+.primary{background:#20e0a0;color:#04100b}
+.secondary{background:#27384d;color:#fff}
+.danger{background:#ff5c6c;color:#fff}
+.activity{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#101f32;padding:11px;border-radius:10px;margin:7px 0}
+.activity-name{flex:1;cursor:pointer}
+.done{text-decoration:line-through;color:#8fa3bd}
+.empty{text-align:center;color:#8fa3bd;padding:20px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:12px}
+.day{text-align:center;padding:9px 3px;border-radius:8px;background:#101f32;font-size:12px}
+.day.complete{background:#20a879}.day.partial{background:#75622a}.day.today{outline:2px solid #20e0a0}
+.placeholder{text-align:center;padding:35px 10px;color:#8fa3bd}
+.money{font-size:34px;font-weight:bold}
+.money-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.list-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1d3958}
+.positive{color:#20e0a0}.negative{color:#ff7b88}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.inputrow{flex-direction:column}.money-form{grid-template-columns:1fr}.app{padding:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>Mi Progreso 👋</h1>
+<p>Disciplina hoy, resultados mañana.</p>
+</header>
+
+<nav class="menu">
+<button class="active" onclick="showScreen('inicio',this)">🏠 Inicio</button>
+<button onclick="showScreen('calendario',this)">📅 Calendario</button>
+<button onclick="showScreen('ejercicios',this)">🏋️ Ejercicios</button>
+<button onclick="showScreen('ahorro',this)">💰 Ahorro</button>
+<button onclick="showScreen('estadisticas',this)">📊 Estadísticas</button>
+</nav>
+
+<section id="inicio" class="screen active">
+<div class="card">
+<h2>Progreso de hoy</h2>
+<div id="percent" class="progress">0%</div>
+<div class="bar"><div id="barfill" class="barfill"></div></div>
+<p id="summary">Completadas: 0 de 0</p>
+<p id="message">💪 Empieza tu día</p>
+</div>
+
+<div class="stats">
+<div class="stat"><div id="total" class="num">0</div><div class="muted">Misiones</div></div>
+<div class="stat"><div id="completed" class="num">0</div><div class="muted">Completadas</div></div>
+<div class="stat"><div id="pending" class="num">0</div><div class="muted">Pendientes</div></div>
+</div>
+
+<div class="card">
+<h2>🎯 Misiones diarias</h2>
+<div class="inputrow">
+<input id="newActivity" placeholder="Escribe una misión diaria">
+<button class="primary" onclick="addActivity()">+ Agregar misión</button>
+</div>
+<div id="activityList"></div>
+<button class="secondary" onclick="resetDay()">🔄 Reiniciar día</button>
+</div>
+</section>
+
+<section id="calendario" class="screen">
+<div class="card">
+<div class="calendar-head"><h2>📅 Calendario</h2><strong id="monthLabel"></strong></div>
+<p class="muted">Tu progreso diario quedará guardado en este dispositivo.</p>
+<div class="calendar-grid" id="calendarGrid"></div>
+</div>
+</section>
+
+<section id="ejercicios" class="screen">
+<div class="card">
+<h2>🏋️ Rutina de ejercicios</h2>
+<p class="muted">Aquí iremos colocando tu rutina semanal y el progreso de cada día.</p>
+<div class="placeholder">Próximo módulo: lunes a sábado, ejercicios, series, repeticiones y progreso.</div>
+</div>
+</section>
+
+<section id="ahorro" class="screen">
+<div class="card">
+<h2>💰 Ahorro</h2>
+<div class="money" id="balance">0 Bs</div>
+<p class="muted">Balance registrado</p>
+<div class="money-form">
+<input id="moneyAmount" type="number" min="0" placeholder="Monto en Bs">
+<input id="moneyNote" placeholder="Descripción">
+</div>
+<div style="margin-top:8px;display:flex;gap:8px">
+<button class="primary" onclick="addMoney(1)">+ Ingreso</button>
+<button class="danger" onclick="addMoney(-1)">- Gasto</button>
+</div>
+<div id="moneyList" style="margin-top:12px"></div>
+</div>
+</section>
+
+<section id="estadisticas" class="screen">
+<div class="card">
+<h2>📊 Estadísticas</h2>
+<p id="statText">Completa misiones para comenzar a crear tu historial.</p>
+<div class="placeholder">Aquí construiremos los informes por día, semana y mes.</div>
+</div>
+</section>
+</div>
+
+<script>
+const todayKey = new Date().toISOString().slice(0,10);
+let activities = JSON.parse(localStorage.getItem('miProgresoActivities') || '[]');
+let money = JSON.parse(localStorage.getItem('miProgresoMoney') || '[]');
+let history = JSON.parse(localStorage.getItem('miProgresoHistory') || '{}');
+
+function save(){
+  localStorage.setItem('miProgresoActivities',JSON.stringify(activities));
+  localStorage.setItem('miProgresoMoney',JSON.stringify(money));
+  localStorage.setItem('miProgresoHistory',JSON.stringify(history));
+}
+function progress(){
+  if(!activities.length)return 0;
+  return Math.round(activities.filter(a=>a.done).length/activities.length*100);
+}
+function render(){
+  const p=progress(), c=activities.filter(a=>a.done).length;
+  document.getElementById('percent').textContent=p+'%';
+  document.getElementById('barfill').style.width=p+'%';
+  document.getElementById('summary').textContent=`Completadas: ${c} de ${activities.length}`;
+  document.getElementById('total').textContent=activities.length;
+  document.getElementById('completed').textContent=c;
+  document.getElementById('pending').textContent=activities.length-c;
+  document.getElementById('message').textContent=p>=80?'🎉 Día completado':p>0?'💪 Sigue avanzando':'💪 Empieza tu día';
+  document.getElementById('statText').textContent=`Hoy: ${p}% · ${c}/${activities.length} misiones completadas.`;
+  const list=document.getElementById('activityList');
+  if(!activities.length){list.innerHTML='<div class="empty">No hay misiones. Agrega tu primera misión.</div>'}
+  else list.innerHTML=activities.map((a,i)=>`
+    <div class="activity">
+      <span class="activity-name ${a.done?'done':''}" onclick="toggleActivity(${i})">${a.done?'☑':'☐'} ${escapeHtml(a.name)}</span>
+      <button class="danger" onclick="deleteActivity(${i})">🗑️</button>
+    </div>`).join('');
+  history[todayKey]=p;
+  save(); renderCalendar(); renderMoney();
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function addActivity(){
+  const input=document.getElementById('newActivity'), name=input.value.trim();
+  if(!name)return;
+  activities.push({name,done:false}); input.value=''; render();
+}
+function toggleActivity(i){activities[i].done=!activities[i].done;render()}
+function deleteActivity(i){activities.splice(i,1);render()}
+function resetDay(){activities.forEach(a=>a.done=false);render()}
+function showScreen(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function renderCalendar(){
+  const d=new Date(), y=d.getFullYear(), m=d.getMonth();
+  document.getElementById('monthLabel').textContent=d.toLocaleDateString('es-BO',{month:'long',year:'numeric'});
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++)html+='<div></div>';
+  for(let day=1;day<=days;day++){
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const p=history[key] ?? null;
+    const cls=p>=80?'complete':(p>0?'partial':'');
+    const isToday=key===todayKey?' today':'';
+    html+=`<div class="day ${cls}${isToday}">${day}<br><span>${p===null?'—':p+'%'}</span></div>`;
+  }
+  document.getElementById('calendarGrid').innerHTML=html;
+}
+function addMoney(sign){
+  const amount=Number(document.getElementById('moneyAmount').value);
+  const note=document.getElementById('moneyNote').value.trim()|| (sign>0?'Ingreso':'Gasto');
+  if(!amount)return;
+  money.unshift({amount:amount*sign,note,date:new Date().toLocaleDateString('es-BO')});
+  document.getElementById('moneyAmount').value='';
+  document.getElementById('moneyNote').value='';
+  renderMoney();save();
+}
+function renderMoney(){
+  const balance=money.reduce((s,m)=>s+m.amount,0);
+  document.getElementById('balance').textContent=balance.toLocaleString('es-BO')+' Bs';
+  document.getElementById('moneyList').innerHTML=money.slice(0,10).map(m=>`
+    <div class="list-item"><span>${escapeHtml(m.note)}<br><small class="muted">${m.date}</small></span>
+    <strong class="${m.amount>=0?'positive':'negative'}">${m.amount>=0?'+':''}${m.amount} Bs</strong></div>`).join('') || '<div class="empty">Todavía no hay movimientos.</div>';
+}
+render();
+</script>
+</body>
+</html>
