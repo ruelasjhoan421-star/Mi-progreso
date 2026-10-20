@@ -33,16 +33,32 @@ input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #29476
 .activity-name{flex:1;cursor:pointer}
 .done{text-decoration:line-through;color:#8fa3bd}
 .empty{text-align:center;color:#8fa3bd;padding:20px}
-.calendar-head{display:flex;justify-content:space-between;align-items:center}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:12px}
-.day{text-align:center;padding:9px 3px;border-radius:8px;background:#101f32;font-size:12px}
-.day.complete{background:#20a879}.day.partial{background:#75622a}.day.today{outline:2px solid #20e0a0}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.calendar-nav{display:flex;align-items:center;gap:8px}
+.calendar-nav button{background:#27384d;color:#fff;padding:8px 12px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:12px}
+.weekday{text-align:center;color:#8fa3bd;font-size:11px;padding:7px 0;font-weight:bold}
+.day{text-align:center;padding:9px 2px;border-radius:8px;background:#101f32;font-size:12px;min-height:52px;cursor:pointer;border:1px solid transparent}
+.day span{font-size:10px;color:#d5e3f2}.day.complete{background:#146b50}.day.partial{background:#75622a}.day.today{outline:2px solid #20e0a0}.day.selected{border-color:#fff}.day.future{opacity:.45;cursor:default}
+.calendar-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#8fa3bd}
+.calendar-summary{background:#101f32;border-radius:12px;padding:12px;margin-top:12px}
 .placeholder{text-align:center;padding:35px 10px;color:#8fa3bd}
 .money{font-size:34px;font-weight:bold}
 .money-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .list-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1d3958}
 .positive{color:#20e0a0}.negative{color:#ff7b88}
-@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.inputrow{flex-direction:column}.money-form{grid-template-columns:1fr}.app{padding:12px}}
+.exercise-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.exercise-tools input,.exercise-tools select,.routine-form input,.routine-form select{width:100%;min-width:0;padding:11px;border-radius:10px;border:1px solid #294765;background:#081525;color:#fff}
+.exercise-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.exercise-card{background:#101f32;border:1px solid #1d3958;border-radius:14px;padding:12px;min-width:0}
+.exercise-art{height:92px;border-radius:10px;background:linear-gradient(135deg,#142b40,#0a1728);display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:9px}
+.exercise-card h3{font-size:15px;margin:5px 0}.exercise-card p{font-size:12px;color:#8fa3bd;margin:6px 0;line-height:1.45}
+.tag{display:inline-block;background:#20364d;color:#b8f5e0;border-radius:20px;padding:4px 7px;font-size:10px;margin:2px 2px 5px 0}
+.exercise-detail{background:#081525;border:1px solid #294765;border-radius:12px;padding:13px;margin-top:10px;line-height:1.5}
+.exercise-detail ol{padding-left:20px}.routine-item{background:#101f32;padding:12px;border-radius:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.routine-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:430px){.exercise-grid{grid-template-columns:1fr}.exercise-tools{grid-template-columns:1fr}.exercise-art{height:75px}.routine-form{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.inputrow{flex-direction:column}.inputrow select{width:100%}.money-form{grid-template-columns:1fr}.app{padding:12px}}
 </style>
 </head>
 <body>
@@ -69,6 +85,17 @@ input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #29476
 <p id="message">💪 Empieza tu día</p>
 </div>
 
+<div class="card">
+<h2>⭐ Tu experiencia</h2>
+<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+  <div><div id="levelName" style="font-size:22px;font-weight:bold">Nivel 1 · Principiante</div><div id="xpText" class="muted">0 XP acumulados</div></div>
+  <div style="font-size:34px">🏆</div>
+</div>
+<div class="bar" style="margin-top:12px"><div id="xpBar" class="barfill"></div></div>
+<p id="xpNext" class="muted">Te faltan 100 XP para el siguiente nivel.</p>
+<p class="muted">Fácil: 10 XP · Media: 20 XP · Difícil: 30 XP.</p>
+</div>
+
 <div class="stats">
 <div class="stat"><div id="total" class="num">0</div><div class="muted">Misiones</div></div>
 <div class="stat"><div id="completed" class="num">0</div><div class="muted">Completadas</div></div>
@@ -79,6 +106,11 @@ input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #29476
 <h2>🎯 Misiones diarias</h2>
 <div class="inputrow">
 <input id="newActivity" placeholder="Escribe una misión diaria">
+<select id="newDifficulty" aria-label="Dificultad" style="min-width:120px;padding:12px;border-radius:10px;border:1px solid #294765;background:#081525;color:#fff">
+<option value="facil">Fácil · 10 XP</option>
+<option value="media">Media · 20 XP</option>
+<option value="dificil">Difícil · 30 XP</option>
+</select>
 <button class="primary" onclick="addActivity()">+ Agregar misión</button>
 </div>
 <div id="activityList"></div>
@@ -88,17 +120,36 @@ input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #29476
 
 <section id="calendario" class="screen">
 <div class="card">
-<div class="calendar-head"><h2>📅 Calendario</h2><strong id="monthLabel"></strong></div>
-<p class="muted">Tu progreso diario quedará guardado en este dispositivo.</p>
+<div class="calendar-head"><h2>📅 Calendario</h2><div class="calendar-nav"><button onclick="changeMonth(-1)" aria-label="Mes anterior">‹</button><strong id="monthLabel"></strong><button onclick="changeMonth(1)" aria-label="Mes siguiente">›</button></div></div>
+<p class="muted">Consulta tu progreso por día. Los días anteriores se guardan en este dispositivo.</p>
 <div class="calendar-grid" id="calendarGrid"></div>
+<div class="calendar-legend"><span>🟩 80–100% cumplido</span><span>🟨 1–79% parcial</span><span>⬛ Sin registro</span></div>
+<div id="calendarSummary" class="calendar-summary">Selecciona un día para ver el resumen.</div>
 </div>
 </section>
 
 <section id="ejercicios" class="screen">
 <div class="card">
-<h2>🏋️ Rutina de ejercicios</h2>
-<p class="muted">Aquí iremos colocando tu rutina semanal y el progreso de cada día.</p>
-<div class="placeholder">Próximo módulo: lunes a sábado, ejercicios, series, repeticiones y progreso.</div>
+<h2>🏋️ Biblioteca de ejercicios</h2>
+<p class="muted">Explora ejercicios por categoría, aprende la técnica y añádelos a tu rutina personal. Esta es una biblioteca inicial y podemos ampliarla poco a poco.</p>
+<div class="exercise-tools">
+<input id="exerciseSearch" placeholder="🔎 Buscar ejercicio..." oninput="renderExerciseLibrary()" aria-label="Buscar ejercicio">
+<select id="exerciseCategory" onchange="renderExerciseLibrary()" aria-label="Filtrar categoría">
+<option value="Todos">Todas las categorías</option><option>Pecho</option><option>Espalda</option><option>Hombros</option><option>Brazos</option><option>Piernas y glúteos</option><option>Abdomen</option><option>Cardio</option><option>Movilidad y estiramiento</option>
+</select>
+</div>
+<div id="exerciseLibrary" class="exercise-grid"></div>
+<div id="exerciseDetail" class="exercise-detail" style="display:none"></div>
+</div>
+<div class="card">
+<h2>📝 Mi rutina</h2>
+<p class="muted">Agrega ejercicios de la biblioteca, elige series y repeticiones, y organiza tu entrenamiento.</p>
+<div class="routine-form">
+<select id="routineDay" aria-label="Día de entrenamiento"><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option><option>Domingo</option></select>
+<button class="secondary" onclick="showRoutineDay()">Ver este día</button>
+</div>
+<div id="routineList"></div>
+<div class="muted" style="margin-top:10px">Consejo: empieza con una carga que puedas controlar y detente si sientes dolor agudo, mareo o falta de aire inusual.</div>
 </div>
 </section>
 
@@ -129,15 +180,54 @@ input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid #29476
 </div>
 
 <script>
-const todayKey = new Date().toISOString().slice(0,10);
+function dateKey(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
+const todayKey = dateKey();
+let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let selectedCalendarDay = todayKey;
 let activities = JSON.parse(localStorage.getItem('miProgresoActivities') || '[]');
 let money = JSON.parse(localStorage.getItem('miProgresoMoney') || '[]');
 let history = JSON.parse(localStorage.getItem('miProgresoHistory') || '{}');
+let totalXP = Number(localStorage.getItem('miProgresoXP') || '0');
+const savedDayKey = localStorage.getItem('miProgresoCurrentDay');
+// Al abrir la app en un nuevo día, conservar las misiones y reiniciar sus casillas.
+if(savedDayKey !== todayKey){
+  if(savedDayKey && activities.length){
+    const oldDone = activities.filter(a=>a.done).length;
+    history[savedDayKey] = activities.length ? Math.round(oldDone / activities.length * 100) : 0;
+  }
+  activities = activities.map(a=>({...a, done:false, xpAwarded:false}));
+  localStorage.setItem('miProgresoCurrentDay', todayKey);
+}
+
+function xpFor(difficulty){
+  return difficulty === 'dificil' ? 30 : difficulty === 'media' ? 20 : 10;
+}
+activities = activities.map(a => ({
+  ...a,
+  difficulty: a.difficulty || 'facil',
+  xp: Number(a.xp || xpFor(a.difficulty || 'facil')),
+  xpAwarded: Boolean(a.xpAwarded)
+}));
+function levelInfo(xp){
+  const level = Math.floor(Math.max(0, xp) / 100) + 1;
+  const current = Math.max(0, xp) % 100;
+  const names = ['Principiante','Constante','Disciplinado','Imparable','Leyenda'];
+  return {level, current, title: names[Math.min(level - 1, names.length - 1)]};
+}
+function renderXP(){
+  const info = levelInfo(totalXP);
+  document.getElementById('levelName').textContent = `Nivel ${info.level} · ${info.title}`;
+  document.getElementById('xpText').textContent = `${totalXP} XP acumulados`;
+  document.getElementById('xpBar').style.width = info.current + '%';
+  document.getElementById('xpNext').textContent = `Te faltan ${100 - info.current} XP para el siguiente nivel.`;
+}
 
 function save(){
   localStorage.setItem('miProgresoActivities',JSON.stringify(activities));
   localStorage.setItem('miProgresoMoney',JSON.stringify(money));
   localStorage.setItem('miProgresoHistory',JSON.stringify(history));
+  localStorage.setItem('miProgresoXP',String(totalXP));
+  localStorage.setItem('miProgresoCurrentDay',todayKey);
 }
 function progress(){
   if(!activities.length)return 0;
@@ -157,42 +247,74 @@ function render(){
   if(!activities.length){list.innerHTML='<div class="empty">No hay misiones. Agrega tu primera misión.</div>'}
   else list.innerHTML=activities.map((a,i)=>`
     <div class="activity">
-      <span class="activity-name ${a.done?'done':''}" onclick="toggleActivity(${i})">${a.done?'☑':'☐'} ${escapeHtml(a.name)}</span>
-      <button class="danger" onclick="deleteActivity(${i})">🗑️</button>
+      <span class="activity-name ${a.done?'done':''}" onclick="toggleActivity(${i})">${a.done?'☑':'☐'} ${escapeHtml(a.name)}<br><small class="muted">${a.difficulty==='dificil'?'Difícil':a.difficulty==='media'?'Media':'Fácil'} · ⭐ ${a.xp} XP ${a.done?'· Completada':''}</small></span>
+      <button class="danger" onclick="deleteActivity(${i})" aria-label="Eliminar misión">🗑️</button>
     </div>`).join('');
   history[todayKey]=p;
-  save(); renderCalendar(); renderMoney();
+  save(); renderCalendar(); renderMoney(); renderXP();
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function addActivity(){
   const input=document.getElementById('newActivity'), name=input.value.trim();
   if(!name)return;
-  activities.push({name,done:false}); input.value=''; render();
+  const difficulty=document.getElementById('newDifficulty').value;
+  activities.push({name,done:false,difficulty,xp:xpFor(difficulty),xpAwarded:false});
+  input.value=''; render();
 }
-function toggleActivity(i){activities[i].done=!activities[i].done;render()}
+function toggleActivity(i){
+  if(!activities[i].done){
+    activities[i].done=true;
+    if(!activities[i].xpAwarded){
+      totalXP += Number(activities[i].xp || 10);
+      activities[i].xpAwarded=true;
+    }
+  } else {
+    activities[i].done=false;
+  }
+  render();
+}
 function deleteActivity(i){activities.splice(i,1);render()}
-function resetDay(){activities.forEach(a=>a.done=false);render()}
+function resetDay(){if(!confirm('¿Quieres desmarcar todas las misiones de hoy? El progreso guardado en el calendario y tus XP se conservarán.'))return;activities.forEach(a=>{a.done=false});render()}
 function showScreen(id,btn){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
+function changeMonth(delta){
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+delta, 1);
+  renderCalendar();
+}
+function selectCalendarDay(key){
+  selectedCalendarDay = key;
+  renderCalendar();
+}
 function renderCalendar(){
-  const d=new Date(), y=d.getFullYear(), m=d.getMonth();
-  document.getElementById('monthLabel').textContent=d.toLocaleDateString('es-BO',{month:'long',year:'numeric'});
-  const first=new Date(y,m,1).getDay();
+  const y=calendarMonth.getFullYear(), m=calendarMonth.getMonth();
+  document.getElementById('monthLabel').textContent=calendarMonth.toLocaleDateString('es-BO',{month:'long',year:'numeric'});
+  const first=(new Date(y,m,1).getDay()+6)%7; // Semana de lunes a domingo
   const days=new Date(y,m+1,0).getDate();
-  let html='';
+  const weekdays=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  let html=weekdays.map(day=>`<div class="weekday">${day}</div>`).join('');
   for(let i=0;i<first;i++)html+='<div></div>';
   for(let day=1;day<=days;day++){
     const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const p=history[key] ?? null;
-    const cls=p>=80?'complete':(p>0?'partial':'');
-    const isToday=key===todayKey?' today':'';
-    html+=`<div class="day ${cls}${isToday}">${day}<br><span>${p===null?'—':p+'%'}</span></div>`;
+    const cls=(p>=80?'complete':(p>0?'partial':''))+(key===todayKey?' today':'')+(key===selectedCalendarDay?' selected':'')+(key>todayKey?' future':'');
+    html+=`<div class="day ${cls}" ${key<=todayKey?`onclick="selectCalendarDay('${key}')"`:''}><strong>${day}</strong><br><span>${p===null?'—':p+'%'}</span></div>`;
   }
   document.getElementById('calendarGrid').innerHTML=html;
+  const p=history[selectedCalendarDay];
+  const date=new Date(selectedCalendarDay+'T12:00:00');
+  const label=date.toLocaleDateString('es-BO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let summary;
+  if(selectedCalendarDay===todayKey){
+    const done=activities.filter(a=>a.done).length;
+    const percent=activities.length?Math.round(done/activities.length*100):0;
+    summary=`<strong>${label}</strong><br>Hoy llevas ${percent}% · ${done} de ${activities.length} misiones completadas.`;
+  }else if(p!==undefined){summary=`<strong>${label}</strong><br>Progreso registrado: ${p}%. ${p>=80?'🎉 Día cumplido.':p>0?'💪 Día parcial.':'No se completaron misiones.'}`;}
+  else summary=`<strong>${label}</strong><br>No hay progreso guardado para este día.`;
+  document.getElementById('calendarSummary').innerHTML=summary;
 }
 function addMoney(sign){
   const amount=Number(document.getElementById('moneyAmount').value);
@@ -210,7 +332,70 @@ function renderMoney(){
     <div class="list-item"><span>${escapeHtml(m.note)}<br><small class="muted">${m.date}</small></span>
     <strong class="${m.amount>=0?'positive':'negative'}">${m.amount>=0?'+':''}${m.amount} Bs</strong></div>`).join('') || '<div class="empty">Todavía no hay movimientos.</div>';
 }
+const exerciseLibrary = [
+{id:'pushup',name:'Flexiones normales',cat:'Pecho',icon:'🤸',level:'Principiante',muscles:'Pecho, tríceps y abdomen',sets:3,reps:'8–12',steps:['Coloca las manos un poco más abiertas que los hombros.','Mantén el cuerpo recto desde la cabeza hasta los talones.','Baja el pecho controladamente flexionando los codos.','Empuja el suelo hasta volver arriba sin hundir la cintura.'],tip:'Si cuesta mucho, apoya las rodillas en el suelo.'},
+{id:'inclinepush',name:'Flexiones inclinadas',cat:'Pecho',icon:'🧍',level:'Principiante',muscles:'Pecho y tríceps',sets:3,reps:'8–15',steps:['Apoya las manos en una mesa o superficie firme contra la pared.','Da un paso atrás y alinea el cuerpo.','Acerca el pecho a la superficie y empuja para regresar.'],tip:'Cuanto más alta la superficie, más fácil será.'},
+{id:'widepush',name:'Flexiones abiertas',cat:'Pecho',icon:'💪',level:'Intermedio',muscles:'Pecho y hombros',sets:3,reps:'8–12',steps:['Coloca las manos algo más separadas que en la flexión normal.','Mantén el abdomen firme y los codos controlados.','Baja sin dejar caer la cadera y vuelve a subir.'],tip:'No abras las manos exageradamente; prioriza comodidad en los hombros.'},
+{id:'diamond',name:'Flexiones diamante',cat:'Brazos',icon:'💎',level:'Avanzado',muscles:'Tríceps y pecho',sets:2,reps:'5–10',steps:['Acerca las manos debajo del pecho formando un diamante cómodo.','Mantén los codos cerca del torso.','Baja solo hasta donde puedas controlar y empuja hacia arriba.'],tip:'Puedes separar un poco las manos si molesta la muñeca.'},
+{id:'pike',name:'Flexiones pike',cat:'Hombros',icon:'🔺',level:'Intermedio',muscles:'Hombros y tríceps',sets:3,reps:'6–10',steps:['Apoya manos y pies y eleva la cadera formando una V invertida.','Flexiona los codos llevando la cabeza hacia el suelo, entre las manos.','Empuja para regresar sin perder la posición.'],tip:'Haz un recorrido corto al principio y evita cargar el cuello.'},
+{id:'chairdip',name:'Fondos en silla',cat:'Brazos',icon:'🪑',level:'Intermedio',muscles:'Tríceps',sets:2,reps:'6–10',steps:['Usa una silla firme apoyada contra la pared.','Coloca las manos en el borde y adelanta los pies.','Baja poco a poco doblando los codos y vuelve a subir.'],tip:'Si sientes molestia en los hombros, cambia por flexiones inclinadas.'},
+{id:'curl',name:'Curl de bíceps con botellas',cat:'Brazos',icon:'🧴',level:'Principiante',muscles:'Bíceps',sets:3,reps:'10–15',steps:['Sujeta una botella en cada mano con los brazos junto al cuerpo.','Dobla los codos sin balancear el torso.','Sube las botellas y bájalas lentamente.'],tip:'Usa botellas llenas de agua y aumenta el peso poco a poco.'},
+{id:'overhead',name:'Extensión de tríceps',cat:'Brazos',icon:'🙆',level:'Principiante',muscles:'Tríceps',sets:2,reps:'10–12',steps:['Sujeta una botella con ambas manos por encima de la cabeza.','Mantén los codos apuntando hacia delante.','Dobla los codos para bajar la botella detrás de la cabeza y extiende.'],tip:'Usa poco peso y mantén el abdomen firme.'},
+{id:'hang',name:'Colgarse de la barra',cat:'Espalda',icon:'🧗',level:'Intermedio',muscles:'Agarre, hombros y espalda',sets:3,reps:'10–30 s',steps:['Comprueba que la barra esté firme, seca y no resbale.','Sujétate con ambas manos y deja el cuerpo relajado o ligeramente activo.','Baja con cuidado y descansa antes de repetir.'],tip:'No lo hagas si la barra está mojada o se mueve.'},
+{id:'row',name:'Remo con mochila',cat:'Espalda',icon:'🎒',level:'Principiante',muscles:'Espalda y bíceps',sets:3,reps:'10–15',steps:['Carga una mochila con objetos seguros y ciérrala bien.','Inclina el torso con la espalda neutra y rodillas ligeramente flexionadas.','Lleva la mochila hacia el abdomen y bájala lentamente.'],tip:'Empieza ligero; no redondees la espalda.'},
+{id:'reversefly',name:'Aperturas posteriores con botellas',cat:'Espalda',icon:'🪽',level:'Principiante',muscles:'Parte alta de la espalda y hombro posterior',sets:2,reps:'10–15',steps:['Inclina el torso con espalda neutra y una botella ligera en cada mano.','Con codos ligeramente doblados, abre los brazos hacia los lados.','Regresa despacio sin encoger los hombros.'],tip:'Elige botellas ligeras y evita impulsarte.'},
+{id:'shoulderpress',name:'Press de hombros con botellas',cat:'Hombros',icon:'🏋️',level:'Principiante',muscles:'Hombros y tríceps',sets:3,reps:'8–12',steps:['Sujeta botellas a la altura de los hombros.','Aprieta el abdomen y empuja hacia arriba.','Baja lentamente hasta la posición inicial.'],tip:'No arquees la zona lumbar.'},
+{id:'lateralraise',name:'Elevaciones laterales',cat:'Hombros',icon:'🪽',level:'Principiante',muscles:'Hombros',sets:2,reps:'10–15',steps:['Sujeta botellas ligeras a los lados del cuerpo.','Eleva los brazos hacia los lados hasta una altura cómoda.','Baja despacio sin balancear el torso.'],tip:'Usa poco peso; no hace falta elevar por encima de los hombros.'},
+{id:'squat',name:'Sentadillas',cat:'Piernas y glúteos',icon:'🦵',level:'Principiante',muscles:'Cuádriceps y glúteos',sets:3,reps:'12–15',steps:['Coloca los pies aproximadamente al ancho de los hombros.','Lleva la cadera atrás y dobla las rodillas manteniendo el pecho erguido.','Empuja el suelo para volver a ponerte de pie.'],tip:'Las rodillas deben seguir la dirección de los pies.'},
+{id:'lunge',name:'Zancadas',cat:'Piernas y glúteos',icon:'🚶',level:'Intermedio',muscles:'Piernas y glúteos',sets:3,reps:'8–10 por pierna',steps:['Da un paso al frente suficientemente largo.','Baja verticalmente hasta donde controles.','Empuja con el pie delantero y regresa; cambia de pierna.'],tip:'Puedes sujetarte de una pared para mantener el equilibrio.'},
+{id:'glutebridge',name:'Puente de glúteos',cat:'Piernas y glúteos',icon:'🌉',level:'Principiante',muscles:'Glúteos e isquiotibiales',sets:3,reps:'12–15',steps:['Acuéstate boca arriba con rodillas flexionadas y pies en el suelo.','Aprieta los glúteos y eleva la cadera.','Haz una pausa breve y baja controladamente.'],tip:'No arquees la espalda para subir más.'},
+{id:'calf',name:'Elevaciones de pantorrilla',cat:'Piernas y glúteos',icon:'🦶',level:'Principiante',muscles:'Pantorrillas',sets:3,reps:'15–20',steps:['Ponte de pie y apóyate en una pared si lo necesitas.','Eleva los talones hasta quedar sobre las puntas.','Baja lentamente hasta apoyar los talones.'],tip:'Hazlo sobre suelo estable; evita rebotes rápidos.'},
+{id:'bulgarian',name:'Sentadilla búlgara',cat:'Piernas y glúteos',icon:'🪑',level:'Avanzado',muscles:'Cuádriceps y glúteos',sets:2,reps:'6–10 por pierna',steps:['Apoya el empeine trasero en una silla estable.','Coloca el pie delantero a una distancia cómoda.','Baja controladamente y empuja con la pierna delantera para subir.'],tip:'Empieza sin peso y con apoyo para el equilibrio.'},
+{id:'plank',name:'Plancha abdominal',cat:'Abdomen',icon:'🧱',level:'Principiante',muscles:'Abdomen y estabilidad',sets:3,reps:'20–40 s',steps:['Apoya antebrazos y puntas de los pies en el suelo.','Mantén cabeza, espalda y cadera alineadas.','Respira normalmente y termina antes de perder la postura.'],tip:'Puedes apoyar las rodillas para una versión más sencilla.'},
+{id:'legraise',name:'Elevación de piernas',cat:'Abdomen',icon:'⬆️',level:'Intermedio',muscles:'Abdomen',sets:2,reps:'8–12',steps:['Acuéstate boca arriba y coloca las manos junto al cuerpo.','Eleva las piernas manteniendo el abdomen activo.','Bájalas despacio sin arquear la zona lumbar.'],tip:'Dobla las rodillas si la espalda se despega del suelo.'},
+{id:'bicycle',name:'Abdominal bicicleta',cat:'Abdomen',icon:'🚲',level:'Principiante',muscles:'Abdomen y oblicuos',sets:3,reps:'10–16 por lado',steps:['Acuéstate boca arriba con las manos suaves detrás de la cabeza.','Acerca un codo a la rodilla contraria mientras extiendes la otra pierna.','Alterna lados con control sin tirar del cuello.'],tip:'El movimiento sale del torso; no empujes la cabeza con las manos.'},
+{id:'mountain',name:'Mountain climbers',cat:'Cardio',icon:'⛰️',level:'Intermedio',muscles:'Cardio, abdomen y hombros',sets:3,reps:'20–30 s',steps:['Colócate en posición de flexión con manos bajo los hombros.','Lleva una rodilla hacia el pecho y alterna las piernas.','Mantén la cadera estable y el ritmo controlado.'],tip:'Hazlo lento al principio; no dejes que la cintura se hunda.'},
+{id:'jumpingjacks',name:'Saltos de tijera',cat:'Cardio',icon:'⭐',level:'Principiante',muscles:'Resistencia cardiovascular',sets:3,reps:'20–40 s',steps:['Ponte de pie con los pies juntos y brazos a los lados.','Salta abriendo piernas y llevando brazos arriba.','Salta de nuevo para regresar a la posición inicial.'],tip:'Versión sin salto: alterna pasos laterales y mueve los brazos.'},
+{id:'burpee',name:'Burpees',cat:'Cardio',icon:'🔥',level:'Avanzado',muscles:'Cuerpo completo y cardio',sets:2,reps:'5–8',steps:['Desde de pie, flexiona rodillas y coloca las manos en el suelo.','Lleva los pies atrás hasta una plancha, dando un paso si hace falta.','Regresa con los pies hacia las manos y ponte de pie.'],tip:'No necesitas hacer la flexión ni el salto; prioriza una técnica segura.'},
+{id:'jog',name:'Trote suave',cat:'Cardio',icon:'🏃',level:'Principiante',muscles:'Resistencia cardiovascular',sets:1,reps:'10–30 min',steps:['Empieza caminando unos minutos para calentar.','Trota a un ritmo que te permita hablar en frases cortas.','Termina caminando para bajar el ritmo.'],tip:'Aumenta tiempo gradualmente y usa calzado cómodo.'},
+{id:'hamstring',name:'Estiramiento de isquiotibiales',cat:'Movilidad y estiramiento',icon:'🧘',level:'Principiante',muscles:'Parte posterior del muslo',sets:2,reps:'20–30 s por lado',steps:['Siéntate con una pierna extendida y la otra flexionada.','Inclina el torso desde la cadera hacia la pierna extendida.','Mantén la espalda cómoda y respira sin rebotes.'],tip:'Busca tensión suave, nunca dolor.'},
+{id:'quadstretch',name:'Estiramiento de cuádriceps',cat:'Movilidad y estiramiento',icon:'🧍',level:'Principiante',muscles:'Parte frontal del muslo',sets:2,reps:'20–30 s por lado',steps:['Ponte de pie y sujétate de una pared para equilibrarte.','Dobla una rodilla y acerca el talón al glúteo sujetando el tobillo.','Mantén las rodillas cerca y la pelvis estable.'],tip:'No fuerces la rodilla ni arquees la espalda.'},
+{id:'catcow',name:'Gato-vaca',cat:'Movilidad y estiramiento',icon:'🐈',level:'Principiante',muscles:'Movilidad de columna',sets:2,reps:'8–10 repeticiones',steps:['Ponte a cuatro apoyos con manos bajo hombros y rodillas bajo caderas.','Redondea suavemente la espalda y lleva la barbilla hacia el pecho.','Después arquea suavemente la espalda mirando al frente sin forzar el cuello.'],tip:'Muévete despacio y acompaña el movimiento con la respiración.'},
+{id:'childpose',name:'Postura de descanso',cat:'Movilidad y estiramiento',icon:'🌿',level:'Principiante',muscles:'Espalda y caderas',sets:2,reps:'20–40 s',steps:['Arrodíllate y lleva la cadera hacia los talones.','Extiende los brazos al frente y baja el torso hasta donde sea cómodo.','Respira lento sin forzar las rodillas ni los hombros.'],tip:'Coloca una almohada bajo el torso si lo necesitas.'}
+];
+let userRoutine = JSON.parse(localStorage.getItem('miProgresoRoutine') || '[]');
+function renderExerciseLibrary(){
+ const q=(document.getElementById('exerciseSearch')?.value||'').toLowerCase().trim();
+ const cat=document.getElementById('exerciseCategory')?.value||'Todos';
+ const filtered=exerciseLibrary.filter(e=>(cat==='Todos'||e.cat===cat)&&(`${e.name} ${e.cat} ${e.muscles} ${e.level}`).toLowerCase().includes(q));
+ const box=document.getElementById('exerciseLibrary');
+ box.innerHTML=filtered.map(e=>`<article class="exercise-card"><div class="exercise-art" role="img" aria-label="Ilustración simbólica de ${e.name}">${e.icon}</div><span class="tag">${e.cat}</span><span class="tag">${e.level}</span><h3>${e.name}</h3><p>${e.muscles}</p><button class="secondary" onclick="showExerciseDetail('${e.id}')">Ver cómo hacerlo</button> <button class="primary" onclick="addToRoutine('${e.id}')">+ Rutina</button></article>`).join('')||'<div class="empty">No encontramos ejercicios con esa búsqueda.</div>';
+}
+function showExerciseDetail(id){
+ const e=exerciseLibrary.find(x=>x.id===id); if(!e)return;
+ const d=document.getElementById('exerciseDetail'); d.style.display='block';
+ d.innerHTML=`<div style="display:flex;gap:12px;align-items:center"><div class="exercise-art" style="width:84px;min-width:84px;height:84px;margin:0">${e.icon}</div><div><h3 style="margin:0">${e.name}</h3><p class="muted">${e.cat} · ${e.level}</p><p>${e.muscles}</p></div></div><strong>Cómo realizarlo</strong><ol>${e.steps.map(step=>`<li>${step}</li>`).join('')}</ol><p><strong>Consejo:</strong> ${e.tip}</p><p class="muted">Propuesta inicial: ${e.sets} series · ${e.reps}</p><button class="primary" onclick="addToRoutine('${e.id}')">Añadir a mi rutina</button><button class="secondary" onclick="document.getElementById('exerciseDetail').style.display='none'">Cerrar</button>`;
+ d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function addToRoutine(id){
+ const e=exerciseLibrary.find(x=>x.id===id); if(!e)return;
+ const day=document.getElementById('routineDay').value;
+ userRoutine.push({key:Date.now()+Math.random(),id:e.id,day,sets:e.sets,reps:e.reps});
+ saveRoutine(); renderRoutine();
+}
+function saveRoutine(){localStorage.setItem('miProgresoRoutine',JSON.stringify(userRoutine));}
+function showRoutineDay(){renderRoutine();}
+function renderRoutine(){
+ const day=document.getElementById('routineDay')?.value||'Lunes';
+ const items=userRoutine.filter(r=>r.day===day);
+ document.getElementById('routineList').innerHTML=items.length?items.map(r=>{const e=exerciseLibrary.find(x=>x.id===r.id);if(!e)return '';return `<div class="routine-item"><div><strong>${e.icon} ${e.name}</strong><p class="muted" style="margin:5px 0">${r.sets} series · ${r.reps}</p><div class="routine-form"><label class="muted">Series<input type="number" min="1" max="10" value="${r.sets}" onchange="updateRoutine(${JSON.stringify(String(r.key))},'sets',this.value)"></label><label class="muted">Repeticiones/tiempo<input value="${r.reps}" onchange="updateRoutine(${JSON.stringify(String(r.key))},'reps',this.value)"></label></div></div><button class="danger" onclick="removeRoutine(${JSON.stringify(String(r.key))})">Quitar</button></div>`}).join(''):`<div class="empty">Todavía no hay ejercicios para ${day}. Añádelos desde la biblioteca.</div>`;
+}
+function updateRoutine(key,field,value){const r=userRoutine.find(x=>String(x.key)===String(key));if(!r)return;if(field==='sets')r.sets=Math.max(1,Math.min(10,Number(value)||1));else r.reps=String(value).slice(0,40);saveRoutine();renderRoutine();}
+function removeRoutine(key){userRoutine=userRoutine.filter(r=>String(r.key)!==String(key));saveRoutine();renderRoutine();}
+document.getElementById('routineDay').addEventListener('change',renderRoutine);
+renderExerciseLibrary();renderRoutine();
 render();
+renderXP();
 </script>
 </body>
 </html>
